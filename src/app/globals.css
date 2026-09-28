@@ -1501,6 +1501,261 @@ h2 {
 	width: 100%;
 }
 
+.comp-layout {
+	display: flex;
+	min-height: 0;
+	flex: 1;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.comp-scroll {
+	display: flex;
+	min-height: 0;
+	flex: 1;
+	flex-direction: column;
+	gap: 12px;
+	overflow-y: auto;
+	scrollbar-color: var(--border) transparent;
+	scrollbar-width: thin;
+}
+
+.comp-models-label {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+}
+
+.comp-count {
+	color: var(--text-secondary);
+	font-size: 10px;
+	font-weight: 600;
+}
+
+.comp-models {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.comp-model-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 32px;
+	padding: 5px 10px;
+	border: 1px solid var(--border);
+	border-radius: 7px;
+	background: var(--surface);
+	color: var(--text-secondary);
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.comp-model-chip.is-selected {
+	border-color: var(--tint-border);
+	background: var(--accent-soft);
+	color: var(--text-primary);
+}
+
+.comp-model-check {
+	margin-left: auto;
+	color: var(--accent);
+}
+
+.comp-model-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.model-dot {
+	flex-shrink: 0;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--model-color);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--model-color) 18%, transparent);
+}
+
+.tone-fast,
+.comp-model-chip.tone-fast,
+.comp-block.tone-fast,
+.comp-verdict.tone-fast {
+	--model-color: #7650ec;
+}
+
+.tone-pro,
+.comp-model-chip.tone-pro,
+.comp-block.tone-pro,
+.comp-verdict.tone-pro {
+	--model-color: #10b981;
+}
+
+.tone-mini,
+.comp-model-chip.tone-mini,
+.comp-block.tone-mini,
+.comp-verdict.tone-mini {
+	--model-color: #f59e0b;
+}
+
+.comp-arena {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.comp-verdict {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 9px 11px;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: linear-gradient(135deg, color-mix(in srgb, var(--model-color) 12%, var(--surface)), var(--surface));
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.comp-verdict-icon {
+	display: grid;
+	flex-shrink: 0;
+	place-items: center;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--model-color) 16%, transparent);
+	color: var(--model-color);
+}
+
+.comp-verdict-body {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.comp-verdict-note {
+	color: var(--text-secondary);
+	font-size: 10px;
+	font-weight: 400;
+}
+
+.comp-blocks {
+	display: flex;
+	flex-direction: column;
+	gap: 9px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.comp-block {
+	display: flex;
+	flex-direction: column;
+	gap: 7px;
+	padding: 10px 12px;
+	border: 1px solid var(--border);
+	border-top: 2px solid var(--model-color);
+	border-radius: 8px;
+	background: var(--surface);
+}
+
+.comp-block.is-winner {
+	border-color: color-mix(in srgb, var(--model-color) 45%, var(--border));
+}
+
+.comp-block-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.comp-block-name {
+	overflow: hidden;
+	color: var(--text-primary);
+	font-size: 12px;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.comp-badge {
+	padding: 2px 6px;
+	border-radius: 3px;
+	background: color-mix(in srgb, var(--model-color) 16%, transparent);
+	color: var(--model-color);
+	font-size: 8px;
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.icon-action.is-liked {
+	color: var(--model-color);
+}
+
+.icon-action.is-disliked {
+	color: var(--destructive);
+}
+
+.comp-followup {
+	display: flex;
+	gap: 6px;
+}
+
+.comp-followup input {
+	flex: 1;
+	min-width: 0;
+	padding: 8px 10px;
+	border: 1px solid var(--border);
+	border-radius: 7px;
+	background: var(--surface);
+	color: var(--text-primary);
+	font-size: 12px;
+}
+
+.comp-followup input:focus-visible {
+	outline: none;
+	border-color: var(--focus);
+	box-shadow: inset 0 0 0 1px var(--focus);
+}
+
+.comp-followup input::placeholder {
+	color: var(--text-secondary);
+}
+
+.comp-footer {
+	display: flex;
+	flex-shrink: 0;
+}
+
+.comp-footer > button[data-slot="button"] {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.comp-block {
+		animation: comp-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+
+	@keyframes comp-in {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+}
+
 @media (max-width: 359px) {
 	.extension-shell {
 		height: 520px;
