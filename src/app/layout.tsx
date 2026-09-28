@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   },
 };
 
-const themeInitScript = `(function(){try{var d=window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.dataset.theme=d?"dark":"light";}catch(e){}})();`;
+const themeInitScript = `(function(){try{var t;try{var s=JSON.parse(localStorage.getItem("echogpt.demo.settings.v1")||"{}");t=s.themeMode==="light"?"light":s.themeMode==="dark"?"dark":null;}catch(e){t=null;}if(!t)t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t;}catch(e){}})();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
