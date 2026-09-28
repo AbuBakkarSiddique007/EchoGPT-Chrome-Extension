@@ -59,6 +59,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ReadWorkspace } from "@/components/read-workspace";
+import { TranslateWorkspace } from "@/components/translate-workspace";
 import { WriteWorkspace } from "@/components/write-workspace";
 import type {
   Conversation,
@@ -598,6 +599,8 @@ function ExtensionContent() {
             <WriteWorkspace onInsertToPrompt={handleInsertToPrompt} />
           ) : activeTool === "read" ? (
             <ReadWorkspace />
+          ) : activeTool === "translate" ? (
+            <TranslateWorkspace />
           ) : (
             <div className="workspace-scroll">
               <div className="welcome-panel">
