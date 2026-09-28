@@ -58,6 +58,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { WriteWorkspace } from "@/components/write-workspace";
 import type {
   Conversation,
   GenerationState,
@@ -268,6 +269,11 @@ function ExtensionContent() {
     runAssistantReply(precedingUser?.content ?? "");
   };
 
+  const handleInsertToPrompt = (text: string) => {
+    setPrompt(text);
+    setActiveTool("chat");
+  };
+
   const handleComposerKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -424,16 +430,17 @@ function ExtensionContent() {
         </nav>
 
         <section className="workspace" aria-labelledby="workspace-title">
-          <div className="workspace-scroll" ref={scrollRef}>
-            <div className="workspace-heading">
-              <div>
-                <div className="title-row">
-                  <h1 id="workspace-title">{activeCapability?.label ?? "Chat"}</h1>
-                  <span className="beta-label">Beta</span>
-                </div>
-                <p className="workspace-subtitle">Your page-aware AI workspace</p>
+          <div className="workspace-heading">
+            <div>
+              <div className="title-row">
+                <h1 id="workspace-title">{activeCapability?.label ?? "Chat"}</h1>
+                <span className="beta-label">Beta</span>
               </div>
-              <div className="heading-actions">
+              <p className="workspace-subtitle">{activeCapability?.description ?? "Your page-aware AI workspace"}</p>
+            </div>
+            <div className="heading-actions">
+              {activeTool === "chat" ? (
+                <>
                 <button className="secondary-button" type="button" onClick={handleNewChat}><Plus size={14} /> New chat</button>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -449,9 +456,13 @@ function ExtensionContent() {
                   </TooltipTrigger>
                   <TooltipContent side="bottom">Chat history</TooltipContent>
                 </Tooltip>
-              </div>
+                </>
+              ) : null}
             </div>
+          </div>
 
+          {activeTool === "chat" ? (
+            <div className="workspace-scroll" ref={scrollRef}>
             {historyOpen ? (
               <div className="history-pane">
                 <div className="history-header">
@@ -581,9 +592,27 @@ function ExtensionContent() {
                 ) : null}
               </div>
             )}
-          </div>
+            </div>
+          ) : activeTool === "write" ? (
+            <WriteWorkspace onInsertToPrompt={handleInsertToPrompt} />
+          ) : (
+            <div className="workspace-scroll">
+              <div className="welcome-panel">
+                <div className="welcome-icon">
+                  {activeCapability ? (
+                    <activeCapability.icon size={18} strokeWidth={1.8} aria-hidden="true" />
+                  ) : (
+                    <Blocks size={18} />
+                  )}
+                </div>
+                <p className="eyebrow">Coming soon</p>
+                <h2>{activeCapability?.label ?? "This workspace"} is coming next</h2>
+                <p>This capability is part of the prototype build sequence and will land in a later part.</p>
+              </div>
+            </div>
+          )}
 
-          {!historyOpen ? (
+          {activeTool === "chat" && !historyOpen ? (
           <div className="composer-wrap">
             <label htmlFor="prompt">Ask EchoGPT anything</label>
             <textarea
