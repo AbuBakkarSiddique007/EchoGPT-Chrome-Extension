@@ -4,6 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "EchoGPT",
   description: "EchoGPT Chrome extension redesign prototype",
+  icons: {
+    icon: "/logo-echogpt.svg",
+    shortcut: "/logo-echogpt.svg",
+  },
 };
 
 const themeInitScript = `(function(){try{var d=window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.dataset.theme=d?"dark":"light";}catch(e){}})();`;
