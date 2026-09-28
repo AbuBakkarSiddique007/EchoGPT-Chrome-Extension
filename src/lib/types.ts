@@ -51,3 +51,15 @@ export type GenerationState =
   | "completed"
   | "error"
   | "rate-limited";
+
+export type ConnectorStatus = "connected" | "disconnected" | "error";
+
+export interface Connector {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  status: ConnectorStatus;
+  tools: string[];
+  lastChecked: string;
+}
