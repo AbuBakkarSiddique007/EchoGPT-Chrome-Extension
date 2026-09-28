@@ -4,6 +4,8 @@ import { ArrowUpDown, Check, ChevronDown, Copy, Languages, ScanText, Sparkles } 
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { humanLanguages } from "@/lib/languages";
+import { demoModels } from "@/lib/models";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,22 +18,7 @@ import {
 
 const AUTO = "Auto-detect";
 
-const languages = [
-  AUTO,
-  "English",
-  "Spanish",
-  "French",
-  "German",
-  "Portuguese",
-  "Italian",
-  "Dutch",
-  "Russian",
-  "Japanese",
-  "Korean",
-  "Chinese (Simplified)",
-  "Arabic",
-  "Hindi",
-] as const;
+const languages = [AUTO, ...humanLanguages] as const;
 
 const demoSourceText =
   "EchoGPT brings a lightweight AI workspace to every webpage you visit. Ask questions about what you are reading, summarize long articles, and turn ideas into drafts — all without leaving the page.";
@@ -51,12 +38,6 @@ const demoSamples: Record<string, string> = {
   Arabic: "مرحبًا! هذه الترجمة التجريبية تُولَّد محليًا، ولم يتم استدعاء أي نموذج ترجمة.",
   Hindi: "नमस्ते! यह डेमो अनुवाद स्थानीय रूप से बनाया गया है। कोई अनुवाद मॉडल नहीं बुलाया गया।",
 };
-
-const demoModels = [
-  { id: "fast", label: "EchoGPT Fast", description: "Speedy, everyday answers" },
-  { id: "pro", label: "EchoGPT Pro", description: "Deeper, more careful reasoning" },
-  { id: "mini", label: "EchoGPT Mini", description: "Lightweight, low-latency replies" },
-] as const;
 
 type GenerationState = "idle" | "generating" | "complete" | "error";
 
@@ -86,14 +67,19 @@ function languageCode(label: string): string {
   return codes[label] ?? "??";
 }
 
-export function TranslateWorkspace() {
+interface TranslateWorkspaceProps {
+  defaultTargetLang?: string;
+  defaultModel?: string;
+}
+
+export function TranslateWorkspace({ defaultTargetLang = "English", defaultModel = "pro" }: TranslateWorkspaceProps) {
   const [sourceLang, setSourceLang] = useState<string>(AUTO);
-  const [targetLang, setTargetLang] = useState<string>("English");
+  const [targetLang, setTargetLang] = useState<string>(defaultTargetLang);
   const [text, setText] = useState("");
   const [generation, setGeneration] = useState<GenerationState>("idle");
   const [result, setResult] = useState<TranslateResult | null>(null);
   const [copied, setCopied] = useState(false);
-  const [model, setModel] = useState<string>("pro");
+  const [model, setModel] = useState<string>(defaultModel);
   const generationTokenRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 

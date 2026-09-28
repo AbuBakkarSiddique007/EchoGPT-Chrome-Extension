@@ -45,7 +45,6 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -61,9 +60,12 @@ import {
 import { CompareWorkspace } from "@/components/compare-workspace";
 import { McpWorkspace } from "@/components/mcp-workspace";
 import { ReadWorkspace } from "@/components/read-workspace";
+import { SettingsWorkspace } from "@/components/settings-workspace";
 import { StudioWorkspace } from "@/components/studio-workspace";
 import { TranslateWorkspace } from "@/components/translate-workspace";
 import { WriteWorkspace } from "@/components/write-workspace";
+import { demoModels } from "@/lib/models";
+import { loadSettings, saveSettings, type AppSettings } from "@/lib/settings";
 import type {
   Conversation,
   GenerationState,
@@ -95,11 +97,7 @@ const quickActionIcons = {
   explain: WandSparkles,
 } as const;
 
-const modelOptions: ModelOption[] = [
-  { id: "fast", label: "EchoGPT Fast", description: "Speedy, everyday answers" },
-  { id: "pro", label: "EchoGPT Pro", description: "Deeper, more careful reasoning" },
-  { id: "mini", label: "EchoGPT Mini", description: "Lightweight, low-latency replies" },
-];
+const modelOptions = demoModels;
 
 function demoReply(prompt: string): string {
   const text = prompt.toLowerCase();
@@ -143,11 +141,16 @@ function readServerTheme(): ThemePreference {
 }
 
 function ExtensionContent() {
-  const [activeTool, setActiveTool] = useState<ToolId>("chat");
+  const [activeTool, setActiveTool] = useState<ToolId>(() => {
+    const stored = loadSettings();
+    return stored.openBehavior === "last-tool" ? stored.lastTool : "chat";
+  });
   const [prompt, setPrompt] = useState("");
   const systemTheme = useSyncExternalStore(subscribeToSystemTheme, readSystemTheme, readServerTheme);
-  const [themeOverride, setThemeOverride] = useState<ThemePreference | null>(null);
-  const theme = themeOverride ?? systemTheme;
+  const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
+  const [settingsSaved, setSettingsSaved] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const theme: ThemePreference = settings.themeMode === "system" ? systemTheme : settings.themeMode;
   const [railCollapsed, setRailCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -160,7 +163,10 @@ function ExtensionContent() {
   const [history, setHistory] = useState<Conversation[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [generation, setGeneration] = useState<GenerationState>("completed");
-  const [selectedModel, setSelectedModel] = useState<ModelOption>(modelOptions[0]);
+  const [selectedModel, setSelectedModel] = useState<ModelOption>(() => {
+    const stored = loadSettings();
+    return modelOptions.find((option) => option.id === stored.defaultModelId) ?? modelOptions[0];
+  });
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const generationTokenRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -175,8 +181,33 @@ function ExtensionContent() {
     if (scroller) scroller.scrollTop = scroller.scrollHeight;
   }, [conversation.messages, generation]);
 
+  const persistSettings = (patch: Partial<AppSettings>) => {
+    setSettings(saveSettings(patch));
+  };
+
+  const updateSettings = (patch: Partial<AppSettings>) => {
+    persistSettings(patch);
+    setSettingsSaved(true);
+    window.setTimeout(() => setSettingsSaved(false), 1600);
+  };
+
+  const switchTool = (tool: ToolId) => {
+    setActiveTool(tool);
+    setSettingsOpen(false);
+    persistSettings({ lastTool: tool });
+  };
+
   const toggleTheme = () => {
-    setThemeOverride(theme === "light" ? "dark" : "light");
+    updateSettings({ themeMode: theme === "light" ? "dark" : "light" });
+  };
+
+  const clearHistory = () => {
+    generationTokenRef.current += 1;
+    setHistory([]);
+    setConversation(createConversation(++idRef.current));
+    setGeneration("completed");
+    setHistoryOpen(false);
+    setPrompt("");
   };
 
   const activeCapability = capabilities.find((capability) => capability.id === activeTool);
@@ -276,7 +307,7 @@ function ExtensionContent() {
 
   const handleInsertToPrompt = (text: string) => {
     setPrompt(text);
-    setActiveTool("chat");
+    switchTool("chat");
   };
 
   const handleComposerKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
@@ -341,7 +372,7 @@ function ExtensionContent() {
               key={capability.label}
               type="button"
               aria-current={activeCapability?.id === capability.id ? "page" : undefined}
-              onClick={() => setActiveTool(capability.id)}
+              onClick={() => switchTool(capability.id)}
             >
               <capability.icon className="rail-icon" size={17} strokeWidth={1.8} aria-hidden="true" />
               <span>{capability.label}</span>
@@ -356,7 +387,7 @@ function ExtensionContent() {
                   key={capability.label}
                   type="button"
                   aria-current={activeCapability?.id === capability.id ? "page" : undefined}
-                  onClick={() => setActiveTool(capability.id)}
+                  onClick={() => switchTool(capability.id)}
                 >
                   <capability.icon className="rail-icon" size={17} strokeWidth={1.8} aria-hidden="true" />
                   <span>{capability.label}</span>
@@ -394,30 +425,16 @@ function ExtensionContent() {
               <span>Upgrade</span>
             </button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="rail-item rail-item-muted" type="button" aria-label="Open settings">
-                  <Settings2 className="rail-icon" size={17} strokeWidth={1.8} aria-hidden="true" />
-                  <span>Settings</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Demo settings</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={theme}
-                  onValueChange={(value) =>
-                    setThemeOverride(value === "dark" ? "dark" : "light")
-                  }
-                >
-                  <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>Account — connect in the full version</DropdownMenuItem>
-                <DropdownMenuItem disabled>Sync — not available in this demo</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <button
+              className={`rail-item rail-item-muted${settingsOpen ? " is-active" : ""}`}
+              type="button"
+              aria-expanded={settingsOpen}
+              aria-label={settingsOpen ? "Close settings" : "Open settings"}
+              onClick={() => setSettingsOpen((open) => !open)}
+            >
+              <Settings2 className="rail-icon" size={17} strokeWidth={1.8} aria-hidden="true" />
+              <span>Settings</span>
+            </button>
 
             <button
               className="rail-profile"
@@ -438,13 +455,31 @@ function ExtensionContent() {
           <div className="workspace-heading">
             <div>
               <div className="title-row">
-                <h1 id="workspace-title">{activeCapability?.label ?? "Chat"}</h1>
-                <span className="beta-label">Beta</span>
+                <h1 id="workspace-title">{settingsOpen ? "Settings" : (activeCapability?.label ?? "Chat")}</h1>
+                <span className="beta-label">{settingsOpen ? "Local" : "Beta"}</span>
               </div>
-              <p className="workspace-subtitle">{activeCapability?.description ?? "Your page-aware AI workspace"}</p>
+              <p className="workspace-subtitle">
+                {settingsOpen
+                  ? "Preferences for this demo"
+                  : (activeCapability?.description ?? "Your page-aware AI workspace")}
+              </p>
             </div>
             <div className="heading-actions">
-              {activeTool === "chat" ? (
+              {settingsOpen ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Close settings"
+                      onClick={() => setSettingsOpen(false)}
+                    >
+                      <X size={16} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Close settings</TooltipContent>
+                </Tooltip>
+              ) : activeTool === "chat" ? (
                 <>
                 <button className="secondary-button" type="button" onClick={handleNewChat}><Plus size={14} /> New chat</button>
                 <Tooltip>
@@ -466,7 +501,15 @@ function ExtensionContent() {
             </div>
           </div>
 
-          {activeTool === "chat" ? (
+          {settingsOpen ? (
+            <SettingsWorkspace
+              settings={settings}
+              onChange={updateSettings}
+              onClearHistory={clearHistory}
+              historyCount={history.length}
+              saved={settingsSaved}
+            />
+          ) : activeTool === "chat" ? (
             <div className="workspace-scroll" ref={scrollRef}>
             {historyOpen ? (
               <div className="history-pane">
@@ -603,7 +646,10 @@ function ExtensionContent() {
           ) : activeTool === "read" ? (
             <ReadWorkspace />
           ) : activeTool === "translate" ? (
-            <TranslateWorkspace />
+            <TranslateWorkspace
+              defaultTargetLang={settings.defaultLanguage}
+              defaultModel={settings.defaultModelId}
+            />
           ) : activeTool === "image" ? (
             <StudioWorkspace kind="image" />
           ) : activeTool === "video" ? (
@@ -629,7 +675,7 @@ function ExtensionContent() {
             </div>
           )}
 
-          {activeTool === "chat" && !historyOpen ? (
+          {activeTool === "chat" && !historyOpen && !settingsOpen ? (
           <div className="composer-wrap">
             <label htmlFor="prompt">Ask EchoGPT anything</label>
             <textarea
