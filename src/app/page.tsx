@@ -59,6 +59,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ReadWorkspace } from "@/components/read-workspace";
+import { StudioWorkspace } from "@/components/studio-workspace";
 import { TranslateWorkspace } from "@/components/translate-workspace";
 import { WriteWorkspace } from "@/components/write-workspace";
 import type {
@@ -601,6 +602,10 @@ function ExtensionContent() {
             <ReadWorkspace />
           ) : activeTool === "translate" ? (
             <TranslateWorkspace />
+          ) : activeTool === "image" ? (
+            <StudioWorkspace kind="image" />
+          ) : activeTool === "video" ? (
+            <StudioWorkspace kind="video" />
           ) : (
             <div className="workspace-scroll">
               <div className="welcome-panel">
