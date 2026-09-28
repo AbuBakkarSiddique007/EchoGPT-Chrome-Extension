@@ -2,20 +2,27 @@
 
 import {
   ArrowUp,
+  Blocks,
   BookOpen,
   ChevronDown,
+  ChevronUp,
+  Crown,
   FilePenLine,
+  GitCompare,
   ImageIcon,
   Languages,
+  MessageSquare,
   MoreHorizontal,
   Moon,
-  PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Send,
   Settings2,
   Sparkles,
   SquarePen,
   Sun,
+  UserRound,
   Video,
   WandSparkles,
   X,
@@ -44,12 +51,14 @@ import {
 import type { ThemePreference } from "@/lib/types";
 
 const capabilities = [
-  { label: "Chat", description: "Ask about this page", icon: Sparkles },
+  { label: "Chat", description: "Ask about this page", icon: MessageSquare },
   { label: "Write", description: "Draft and refine text", icon: FilePenLine },
   { label: "Read", description: "Summarize a source", icon: BookOpen },
   { label: "Translate", description: "Translate selected text", icon: Languages },
   { label: "Image", description: "Create visuals", icon: ImageIcon },
   { label: "Video", description: "Create motion", icon: Video },
+  { label: "Compare", description: "Compare two sources", icon: GitCompare },
+  { label: "MCP", description: "Connect external tools", icon: Blocks },
 ];
 
 const suggestions = [
@@ -89,6 +98,8 @@ function ExtensionContent() {
   const systemTheme = useSyncExternalStore(subscribeToSystemTheme, readSystemTheme, readServerTheme);
   const [themeOverride, setThemeOverride] = useState<ThemePreference | null>(null);
   const theme = themeOverride ?? systemTheme;
+  const [railCollapsed, setRailCollapsed] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -121,40 +132,31 @@ function ExtensionContent() {
               {theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
             </TooltipContent>
           </Tooltip>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open settings">
-                <Settings2 size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Demo settings</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                value={theme}
-                onValueChange={(value) =>
-                  setThemeOverride(value === "dark" ? "dark" : "light")
-                }
-              >
-                <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem disabled>Account — connect in the full version</DropdownMenuItem>
-              <DropdownMenuItem disabled>Sync — not available in this demo</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </header>
 
       <div className="workspace-layout">
-        <nav className="capability-rail" aria-label="Capabilities">
-          <button className="rail-item rail-item-muted rail-collapse" type="button" aria-label="Collapse navigation">
-            <PanelLeft className="rail-icon" size={17} aria-hidden="true" />
-            <span>Hide</span>
+        <nav
+          className={`capability-rail${railCollapsed ? " is-collapsed" : ""}`}
+          aria-label="Capabilities"
+        >
+          <button
+            className="rail-item rail-item-muted rail-collapse"
+            type="button"
+            aria-label={railCollapsed ? "Expand navigation" : "Collapse navigation"}
+            aria-expanded={!railCollapsed}
+            onClick={() => setRailCollapsed((collapsed) => !collapsed)}
+          >
+            {railCollapsed ? (
+              <PanelLeftOpen className="rail-icon" size={17} aria-hidden="true" />
+            ) : (
+              <PanelLeftClose className="rail-icon" size={17} aria-hidden="true" />
+            )}
+            <span className="rail-label">{railCollapsed ? "Show" : "Hide"}</span>
           </button>
 
-          {capabilities.map((capability) => (
+          <div className="rail-middle">
+          {capabilities.slice(0, 4).map((capability) => (
             <button
               className={`rail-item${activeCapability === capability.label ? " is-active" : ""}`}
               key={capability.label}
@@ -167,23 +169,90 @@ function ExtensionContent() {
             </button>
           ))}
 
-          <button className="rail-item rail-item-muted" type="button" aria-label="More capabilities">
-            <MoreHorizontal className="rail-icon" size={17} aria-hidden="true" />
-            <span>More</span>
-          </button>
-
-          <div className="rail-spacer" />
+          {moreOpen && (
+            <div className="rail-more-features">
+              {capabilities.slice(4).map((capability) => (
+                <button
+                  className={`rail-item${activeCapability === capability.label ? " is-active" : ""}`}
+                  key={capability.label}
+                  type="button"
+                  aria-current={activeCapability === capability.label ? "page" : undefined}
+                  onClick={() => setActiveCapability(capability.label)}
+                >
+                  <capability.icon className="rail-icon" size={17} strokeWidth={1.8} aria-hidden="true" />
+                  <span>{capability.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           <button
-            className="rail-profile"
+            className="rail-item rail-item-muted"
             type="button"
-            aria-disabled="true"
-            aria-label="Demo User — account is not connected in this prototype"
+            aria-label={moreOpen ? "Collapse extra capabilities" : "Show extra capabilities"}
+            aria-expanded={moreOpen}
+            onClick={() => setMoreOpen((open) => !open)}
           >
-            <Avatar aria-hidden="true">
-              <AvatarFallback>DU</AvatarFallback>
-            </Avatar>
+            {moreOpen ? (
+              <ChevronUp className="rail-icon" size={17} aria-hidden="true" />
+            ) : (
+              <MoreHorizontal className="rail-icon" size={17} aria-hidden="true" />
+            )}
+            <span>{moreOpen ? "Less" : "More"}</span>
           </button>
+          </div>
+
+          <div className="rail-section-divider" />
+
+          <div className="rail-bottom-group" role="group" aria-label="Account and settings">
+            <button
+              className="rail-item rail-item-muted"
+              type="button"
+              aria-disabled="true"
+              aria-label="Upgrade to Premium — coming in the full version, not available in this prototype"
+            >
+              <Crown className="rail-icon" size={17} strokeWidth={1.8} aria-hidden="true" />
+              <span>Upgrade</span>
+            </button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="rail-item rail-item-muted" type="button" aria-label="Open settings">
+                  <Settings2 className="rail-icon" size={17} strokeWidth={1.8} aria-hidden="true" />
+                  <span>Settings</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Demo settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={theme}
+                  onValueChange={(value) =>
+                    setThemeOverride(value === "dark" ? "dark" : "light")
+                  }
+                >
+                  <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled>Account — connect in the full version</DropdownMenuItem>
+                <DropdownMenuItem disabled>Sync — not available in this demo</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <button
+              className="rail-profile"
+              type="button"
+              aria-disabled="true"
+              aria-label="Demo User — account is not connected in this prototype"
+            >
+              <Avatar aria-hidden="true">
+                <AvatarFallback>
+                  <UserRound size={15} />
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </div>
         </nav>
 
         <section className="workspace" aria-labelledby="workspace-title">

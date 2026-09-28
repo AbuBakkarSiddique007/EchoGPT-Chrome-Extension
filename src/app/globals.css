@@ -168,7 +168,6 @@ textarea:focus-visible {
 	flex-direction: column;
 	gap: 5px;
 	padding: 14px 7px;
-	overflow-y: auto;
 	border-left: 1px solid var(--border);
 	background: var(--surface-muted);
 }
@@ -200,7 +199,37 @@ textarea:focus-visible {
 
 .rail-item.is-active .rail-icon { color: var(--accent); }
 .rail-item-muted { color: var(--muted-fg); }
-.rail-spacer { flex: 1; }
+
+.rail-middle {
+	display: flex;
+	min-height: 0;
+	flex: 1;
+	flex-direction: column;
+	gap: 5px;
+	overflow-y: auto;
+	scrollbar-color: var(--border) transparent;
+	scrollbar-width: thin;
+}
+
+.rail-more-features {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	padding-top: 5px;
+	border-top: 1px solid var(--border);
+}
+
+.rail-section-divider {
+	flex-shrink: 0;
+	height: 1px;
+	background: var(--border);
+}
+
+.rail-bottom-group {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
 
 .rail-collapse {
 	margin-bottom: 5px;
@@ -210,6 +239,22 @@ textarea:focus-visible {
 
 .rail-collapse:hover {
 	border-bottom-color: var(--border);
+}
+
+.capability-rail.is-collapsed {
+	width: 68px;
+}
+
+.capability-rail.is-collapsed .rail-item > span {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 .rail-profile {
