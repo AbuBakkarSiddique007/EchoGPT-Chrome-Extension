@@ -58,6 +58,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { CompareWorkspace } from "@/components/compare-workspace";
 import { ReadWorkspace } from "@/components/read-workspace";
 import { StudioWorkspace } from "@/components/studio-workspace";
 import { TranslateWorkspace } from "@/components/translate-workspace";
@@ -606,6 +607,8 @@ function ExtensionContent() {
             <StudioWorkspace kind="image" />
           ) : activeTool === "video" ? (
             <StudioWorkspace kind="video" />
+          ) : activeTool === "compare" ? (
+            <CompareWorkspace />
           ) : (
             <div className="workspace-scroll">
               <div className="welcome-panel">
