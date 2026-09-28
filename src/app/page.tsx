@@ -23,6 +23,24 @@ import {
 import Image from "next/image";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { ThemePreference } from "@/lib/types";
 
 const capabilities = [
@@ -42,7 +60,9 @@ const suggestions = [
 export default function Home() {
   return (
     <main className="extension-shell">
-      <ExtensionContent />
+      <TooltipProvider delayDuration={200}>
+        <ExtensionContent />
+      </TooltipProvider>
     </main>
   );
 }
@@ -86,23 +106,54 @@ function ExtensionContent() {
           <span>EchoGPT</span>
         </div>
         <div className="topbar-actions">
-          <span className="prototype-badge">Demo</span>
-          <button
-            className="icon-button"
-            type="button"
-            aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
-            onClick={toggleTheme}
-          >
-            {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
-          </button>
-          <button className="icon-button" type="button" aria-label="Open settings">
-            <Settings2 size={16} />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+                onClick={toggleTheme}
+              >
+                {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+            </TooltipContent>
+          </Tooltip>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Open settings">
+                <Settings2 size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Demo settings</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup
+                value={theme}
+                onValueChange={(value) =>
+                  setThemeOverride(value === "dark" ? "dark" : "light")
+                }
+              >
+                <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled>Account — connect in the full version</DropdownMenuItem>
+              <DropdownMenuItem disabled>Sync — not available in this demo</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
       <div className="workspace-layout">
         <nav className="capability-rail" aria-label="Capabilities">
+          <button className="rail-item rail-item-muted rail-collapse" type="button" aria-label="Collapse navigation">
+            <PanelLeft className="rail-icon" size={17} aria-hidden="true" />
+            <span>Hide</span>
+          </button>
+
           {capabilities.map((capability) => (
             <button
               className={`rail-item${activeCapability === capability.label ? " is-active" : ""}`}
@@ -115,54 +166,72 @@ function ExtensionContent() {
               <span>{capability.label}</span>
             </button>
           ))}
+
           <button className="rail-item rail-item-muted" type="button" aria-label="More capabilities">
             <MoreHorizontal className="rail-icon" size={17} aria-hidden="true" />
             <span>More</span>
           </button>
+
           <div className="rail-spacer" />
-          <button className="rail-item rail-item-muted" type="button" aria-label="Collapse navigation">
-            <PanelLeft className="rail-icon" size={17} aria-hidden="true" />
-            <span>Hide</span>
+
+          <button
+            className="rail-profile"
+            type="button"
+            aria-disabled="true"
+            aria-label="Demo User — account is not connected in this prototype"
+          >
+            <Avatar aria-hidden="true">
+              <AvatarFallback>DU</AvatarFallback>
+            </Avatar>
           </button>
         </nav>
 
         <section className="workspace" aria-labelledby="workspace-title">
-          <div className="workspace-heading">
-            <div>
-              <div className="title-row">
-                <h1 id="workspace-title">{activeCapability}</h1>
-                <span className="beta-label">Beta</span>
+          <div className="workspace-scroll">
+            <div className="workspace-heading">
+              <div>
+                <div className="title-row">
+                  <h1 id="workspace-title">{activeCapability}</h1>
+                  <span className="beta-label">Beta</span>
+                </div>
+                <p className="workspace-subtitle">Your page-aware AI workspace</p>
               </div>
-              <p className="workspace-subtitle">Your page-aware AI workspace</p>
+              <div className="heading-actions">
+                <button className="secondary-button" type="button"><Plus size={14} /> New chat</button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="Open chat history">
+                      <SquarePen size={16} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Open chat history</TooltipContent>
+                </Tooltip>
+              </div>
             </div>
-            <div className="heading-actions">
-              <button className="secondary-button" type="button"><Plus size={14} /> New chat</button>
-              <button className="icon-button" type="button" aria-label="Open chat history"><SquarePen size={16} /></button>
+
+            <div className="context-chip">
+              <span className="page-favicon" aria-hidden="true">A</span>
+              <span className="context-copy"><strong>Current page</strong><span>Introducing Arc</span></span>
+              <span className="context-domain">arc.net</span>
+              <button className="context-remove" type="button" aria-label="Remove current page context"><X size={14} /></button>
             </div>
-          </div>
 
-          <div className="context-chip">
-            <span className="page-favicon" aria-hidden="true">A</span>
-            <span className="context-copy"><strong>Current page</strong><span>Introducing Arc</span></span>
-            <span className="context-domain">arc.net</span>
-            <button className="context-remove" type="button" aria-label="Remove current page context"><X size={14} /></button>
-          </div>
+            <div className="welcome-panel">
+              <div className="welcome-icon"><Sparkles size={18} /></div>
+              <p className="eyebrow">Welcome to EchoGPT</p>
+              <h2>What would you like to explore?</h2>
+              <p>Ask questions, summarize content, or turn ideas into something new.</p>
+            </div>
 
-          <div className="welcome-panel">
-            <div className="welcome-icon"><Sparkles size={18} /></div>
-            <p className="eyebrow">Welcome to EchoGPT</p>
-            <h2>What would you like to explore?</h2>
-            <p>Ask questions, summarize content, or turn ideas into something new.</p>
-          </div>
-
-          <div className="quick-actions" aria-label="Quick actions">
-            {suggestions.map((suggestion) => (
-              <button type="button" key={suggestion.label} onClick={() => setPrompt(suggestion.label)}>
-                <suggestion.icon size={15} />
-                <span>{suggestion.label}</span>
-                <ArrowUp size={13} className="quick-arrow" />
-              </button>
-            ))}
+            <div className="quick-actions" aria-label="Quick actions">
+              {suggestions.map((suggestion) => (
+                <button type="button" key={suggestion.label} onClick={() => setPrompt(suggestion.label)}>
+                  <suggestion.icon size={15} />
+                  <span>{suggestion.label}</span>
+                  <ArrowUp size={13} className="quick-arrow" />
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="composer-wrap">
@@ -177,8 +246,27 @@ function ExtensionContent() {
             <div className="composer-footer">
               <button className="model-chip" type="button">EchoGPT Fast <ChevronDown size={13} /></button>
               <div className="composer-actions">
-                <button className="attach-button" type="button" aria-label="Attach a file">+</button>
-                <button className="send-button" type="button" aria-label="Send prompt"><Send size={15} /></button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-[20px] font-light text-muted-foreground"
+                      aria-label="Attach a file"
+                    >
+                      +
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Attach a file</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="icon" aria-label="Send prompt">
+                      <Send size={15} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Send prompt</TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </div>
