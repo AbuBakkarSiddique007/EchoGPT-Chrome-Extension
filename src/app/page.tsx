@@ -5,27 +5,32 @@ import {
   BookOpen,
   ChevronDown,
   FilePenLine,
-  Image,
+  ImageIcon,
   Languages,
   MoreHorizontal,
+  Moon,
   PanelLeft,
   Plus,
   Send,
   Settings2,
   Sparkles,
   SquarePen,
+  Sun,
   Video,
   WandSparkles,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import Image from "next/image";
+import { useEffect, useState, useSyncExternalStore } from "react";
+
+import type { ThemePreference } from "@/lib/types";
 
 const capabilities = [
   { label: "Chat", description: "Ask about this page", icon: Sparkles },
   { label: "Write", description: "Draft and refine text", icon: FilePenLine },
   { label: "Read", description: "Summarize a source", icon: BookOpen },
   { label: "Translate", description: "Translate selected text", icon: Languages },
-  { label: "Image", description: "Create visuals", icon: Image },
+  { label: "Image", description: "Create visuals", icon: ImageIcon },
   { label: "Video", description: "Create motion", icon: Video },
 ];
 
@@ -42,19 +47,54 @@ export default function Home() {
   );
 }
 
+const themeQuery = "(prefers-color-scheme: dark)";
+
+function subscribeToSystemTheme(onChange: () => void) {
+  const media = window.matchMedia(themeQuery);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function readSystemTheme(): ThemePreference {
+  return window.matchMedia(themeQuery).matches ? "dark" : "light";
+}
+
+function readServerTheme(): ThemePreference {
+  return "light";
+}
+
 function ExtensionContent() {
   const [activeCapability, setActiveCapability] = useState("Chat");
   const [prompt, setPrompt] = useState("");
+  const systemTheme = useSyncExternalStore(subscribeToSystemTheme, readSystemTheme, readServerTheme);
+  const [themeOverride, setThemeOverride] = useState<ThemePreference | null>(null);
+  const theme = themeOverride ?? systemTheme;
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setThemeOverride(theme === "light" ? "dark" : "light");
+  };
 
   return (
     <>
       <header className="topbar">
         <div className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">e</span>
+          <Image className="brand-mark" src="/logo-echogpt.svg" alt="" width={128} height={128} preload />
           <span>EchoGPT</span>
         </div>
         <div className="topbar-actions">
           <span className="prototype-badge">Demo</span>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+            onClick={toggleTheme}
+          >
+            {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
           <button className="icon-button" type="button" aria-label="Open settings">
             <Settings2 size={16} />
           </button>
