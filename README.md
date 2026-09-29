@@ -1,8 +1,23 @@
-# EchoGPT Chrome Extension
+# EchoGPT — Chrome Extension Popup
 
-A design prototype of the **EchoGPT browser-extension popup**, implemented as a local Next.js demo and rendered in an ordinary browser tab.
+> A design prototype of the **EchoGPT browser-extension assistant** — chat, writing, reading, translation, image & video generation, model comparison, and MCP tool management, all in one popup-sized UI.
 
-This repository demonstrates the product's visual design, information architecture, interaction states, and simulated capabilities. It is **not a loadable browser extension** — there is no `manifest.json`, service worker, or content script, and none are planned for this prototype. All AI outputs are simulated and explicitly labeled as demo results.
+## Try the live demo
+
+The latest build is deployed on both platforms. Open either link in a browser and resize the window to **400 × 700 px** (the target popup viewport) to see it exactly as the extension popup would appear:
+
+| Platform | URL |
+| --- | --- |
+| **Vercel** | [https://echo-gpt-chrome-extension.vercel.app](https://echo-gpt-chrome-extension.vercel.app) |
+| **Netlify** | [https://echo-gpt-chrome-extension.netlify.app](https://echo-gpt-chrome-extension.netlify.app) |
+
+**Source code:** [github.com/AbuBakkarSiddique007/EchoGPT-Chrome-Extension](https://github.com/AbuBakkarSiddique007/EchoGPT-Chrome-Extension)
+
+## About the project
+
+EchoGPT is a productivity assistant popup for your browser: an AI chat, a writing studio, a page reader, a translator, an image/video generator, a model-comparison arena, and an MCP connector toolbox behind a single right-hand capability rail — the compact, always-available tool surface a browser extension lives in.
+
+This repository is a **high-fidelity design prototype** of that popup, built as a local Next.js app and rendered in an ordinary browser tab so the complete flow can be experienced with no account, backend, or model access. It is **not a loadable browser extension** — there is no `manifest.json`, service worker, or content script, and none are planned for this prototype. All AI outputs are simulated and explicitly labeled as demo results.
 
 ## Feature Overview
 
