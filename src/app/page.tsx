@@ -65,7 +65,7 @@ import { StudioWorkspace } from "@/components/studio-workspace";
 import { TranslateWorkspace } from "@/components/translate-workspace";
 import { WriteWorkspace } from "@/components/write-workspace";
 import { demoModels } from "@/lib/models";
-import { loadSettings, saveSettings, type AppSettings } from "@/lib/settings";
+import { saveSettings, useSettings, type AppSettings } from "@/lib/settings";
 import type {
   Conversation,
   GenerationState,
@@ -140,14 +140,25 @@ function readServerTheme(): ThemePreference {
   return "light";
 }
 
+function subscribeHydration(): () => void {
+  return () => {};
+}
+
+function readHydrated(): boolean {
+  return true;
+}
+
+function useHydrated(): boolean {
+  return useSyncExternalStore(subscribeHydration, readHydrated, () => false);
+}
+
 function ExtensionContent() {
-  const [activeTool, setActiveTool] = useState<ToolId>(() => {
-    const stored = loadSettings();
-    return stored.openBehavior === "last-tool" ? stored.lastTool : "chat";
-  });
+  const hydrated = useHydrated();
+  const settings = useSettings();
+  const [toolOverride, setToolOverride] = useState<ToolId | null>(null);
+  const activeTool: ToolId = toolOverride ?? (hydrated && settings.openBehavior === "last-tool" ? settings.lastTool : "chat");
   const [prompt, setPrompt] = useState("");
   const systemTheme = useSyncExternalStore(subscribeToSystemTheme, readSystemTheme, readServerTheme);
-  const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const theme: ThemePreference = settings.themeMode === "system" ? systemTheme : settings.themeMode;
@@ -163,10 +174,10 @@ function ExtensionContent() {
   const [history, setHistory] = useState<Conversation[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [generation, setGeneration] = useState<GenerationState>("completed");
-  const [selectedModel, setSelectedModel] = useState<ModelOption>(() => {
-    const stored = loadSettings();
-    return modelOptions.find((option) => option.id === stored.defaultModelId) ?? modelOptions[0];
-  });
+  const [modelOverride, setModelOverride] = useState<ModelOption | null>(null);
+  const selectedModel: ModelOption =
+    modelOverride ??
+    (hydrated ? (modelOptions.find((option) => option.id === settings.defaultModelId) ?? modelOptions[0]) : modelOptions[0]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const generationTokenRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -182,7 +193,7 @@ function ExtensionContent() {
   }, [conversation.messages, generation]);
 
   const persistSettings = (patch: Partial<AppSettings>) => {
-    setSettings(saveSettings(patch));
+    saveSettings(patch);
   };
 
   const updateSettings = (patch: Partial<AppSettings>) => {
@@ -192,7 +203,7 @@ function ExtensionContent() {
   };
 
   const switchTool = (tool: ToolId) => {
-    setActiveTool(tool);
+    setToolOverride(tool);
     setSettingsOpen(false);
     persistSettings({ lastTool: tool });
   };
@@ -704,7 +715,7 @@ function ExtensionContent() {
                   <DropdownMenuRadioGroup
                     value={selectedModel.id}
                     onValueChange={(value) =>
-                      setSelectedModel(modelOptions.find((option) => option.id === value) ?? modelOptions[0])
+                      setModelOverride(modelOptions.find((option) => option.id === value) ?? modelOptions[0])
                     }
                   >
                     {modelOptions.map((option) => (
