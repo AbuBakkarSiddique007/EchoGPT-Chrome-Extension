@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from "react";
 import type { ToolId } from "@/lib/types";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -14,6 +15,40 @@ export interface AppSettings {
 }
 
 const STORAGE_KEY = "echogpt.demo.settings.v1";
+
+const SERVER_SNAPSHOT: AppSettings = defaultSettings();
+
+let cached: AppSettings | null = null;
+const listeners = new Set<() => void>();
+
+function readSnapshot(): AppSettings {
+  if (cached === null) cached = loadSettings();
+  return cached;
+}
+
+function subscribeSettings(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSettingsSnapshot(): AppSettings {
+  return readSnapshot();
+}
+
+function getSettingsServerSnapshot(): AppSettings {
+  return SERVER_SNAPSHOT;
+}
+
+function notifySettingsChanged() {
+  cached = null;
+  for (const listener of listeners) listener();
+}
+
+export function useSettings(): AppSettings {
+  return useSyncExternalStore(subscribeSettings, getSettingsSnapshot, getSettingsServerSnapshot);
+}
 
 export function defaultSettings(): AppSettings {
   return {
@@ -58,5 +93,6 @@ export function saveSettings(patch: Partial<AppSettings>): AppSettings {
   } catch {
     // Storage may be unavailable (private mode) — preferences simply stay in memory.
   }
+  notifySettingsChanged();
   return next;
 }
